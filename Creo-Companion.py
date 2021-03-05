@@ -7,6 +7,7 @@ from subprocess import Popen
 from collections import Counter
 from rich import print
 from rich.console import Console
+from rich.progress import track
 import textwrap
 
 con = Console()
@@ -69,13 +70,13 @@ def connect():
     cresonrunflag = 0
     while  cresonrunflag <= 1:
 
-        print('\nConnecting to Creoson server...')
+        print('[yellow]\nConnecting to Creoson server...[/yellow]')
         try:
             c.connect()
-            print("Connected!\n")
+            print("[green]Connected!\n[/green]")
             cresonrunflag = 2
         except ConnectionError:
-            print('Creoson server is not running')
+            print('[red]Creoson server is not running[/red]')
             print('Trying to start server')
             if startServer() == False:              
                 print('Please make sure the server is running and try again.')
@@ -94,8 +95,12 @@ def connect():
         print('[red]\nYou are not connected/activated on any Windchill workspace![/red]')
 
 def grabFiles():
+
+    print("[yellow]Grabbing workspace files...[/yellow]")
     workspaceFiles = c.windchill_list_workspace_files()  
+    print("[green]Files Stored[/green]")
     return workspaceFiles
+
 
 def filterParts(filterstr):
     filtered = filter(lambda x:filterstr in x , files)
@@ -130,10 +135,12 @@ def paramEditor():
     print("\n")
 
     flag1 = 0
-    for files in workspacefiles:
-        if (files.find(filestochange) > -1):
-            flag1 = 0
-            if manual_model.lower() != "n":
+
+    if manual_model.lower() != "n":
+        print("Opening and searching creo files to find partparameters...")
+        for files in workspacefiles:
+            if (files.find(filestochange) > -1):
+                flag1 = 0
                 c.file_open(file_=files)
                 partparameters = (c.parameter_list())
                 for parameters in partparameters:
@@ -141,13 +148,13 @@ def paramEditor():
                         flag1 += 1
                     if flag1 >=3:
                         break
-            else:
-                input('Open up and activate a model, then press enter to continue')
-                partparameters = (c.parameter_list())
+            if flag1 >=3:
                 break
-              
-        if flag1 >=3:
-            break  
+    else:
+        input('Open up and activate a model, then press enter to continue')
+        partparameters = (c.parameter_list())
+        flag1 = 3
+
 
     parameterlist = []
     parameterlistfiltered = []
@@ -182,7 +189,7 @@ def paramEditor():
                 if c.parameter_exists(parameter):
                     try:
                         c.parameter_set(parameter , newparametervalue, files)
-                        print(files,"changed")
+                        print("[cyan]parameter[/cyan] {} [red]changed[/red] in [cyan]{}[/cyan]".format(parameter, files))
                     except:
                         print('Unable to change', files)
 
@@ -204,7 +211,7 @@ def listDims():
     print(c.familytable_list())
 
 print(textwrap.fill(
-    '[yellow]This program was made by Nathan Moore for use at Dynacast Germantown [/yellow]', width=120))
+    '[bright_blue]This program was made by Nathan Moore for use at Dynacast Germantown [/bright_blue]', width=120))
 
 functionList = {
     1: paramEditor
@@ -216,7 +223,8 @@ choice = print("what you you like to do, below are your choices\n")
 
 print("1    Edit Parameters")
 print('')
-choice = int(input(": "))
+choice = int(input(":"))
+
 
 workspacefiles = grabFiles()
 
