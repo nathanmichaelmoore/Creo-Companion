@@ -1,3 +1,5 @@
+#Code is no longer maintained
+
 import creopyson #Module used to interface and comunicate with Creo Parametric
 import os #  
 import sys
